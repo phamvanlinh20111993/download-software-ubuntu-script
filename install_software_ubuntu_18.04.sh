@@ -150,12 +150,12 @@ else
 fi
 
 if ! which nginx > /dev/null 2>&1; then
-    echo "Nginx not installed"
+    echo "################################### Nginx not installed ###################################"
 	sudo apt update
 	sudo apt install nginx
 	service nginx status
 else
-	echo "nginx is installed, skipping..."
+	echo "################################### Nginx is installed, skipping... ###################################"
 	service nginx status
 fi
 
@@ -167,9 +167,10 @@ fi
 #      https://phoenixnap.com/kb/install-tomcat-ubuntu
 # check file is in system: https://stackoverflow.com/questions/5905054/how-can-i-recursively-find-all-files-in-current-and-subfolders-based-on-wildcard
 if ! sudo grep -q  'Apache Tomcat Web Application Container' /etc/systemd/system/tomcat.service; then
-	echo "####################################################################### install apache tomcat"
+	echo "####################################################################### install apache tomcat ##############################"
 	sudo apt update
 	sudo groupadd tomcat
+	sudo mkdir /opt/tomcat
 	sudo useradd -s /bin/false -g tomcat -d /opt/tomcat tomcat
 	cd /tmp
 	curl -O https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.63/bin/apache-tomcat-9.0.63.tar.gz
@@ -179,7 +180,6 @@ if ! sudo grep -q  'Apache Tomcat Web Application Container' /etc/systemd/system
 	#sudo tar xzvf /tmp/apache-tomcat-9.0.*tar.gz -C /opt/tomcat --strip-components=1
 	sudo tar xzvf apache-tomcat-10*.tar.gz -C /opt/tomcat --strip-components=1
 
-	sudo mkdir /opt/tomcat
 	cd /opt/tomcat
 	sudo chgrp -R tomcat /opt/tomcat
 	sudo chmod -R g+r conf

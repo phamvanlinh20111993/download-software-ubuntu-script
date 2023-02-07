@@ -8,6 +8,7 @@ if ! sudo grep -q  'Apache Tomcat Web Application Container' /etc/systemd/system
 	echo "####################################################################### install apache tomcat"
 	sudo apt update
 	sudo groupadd tomcat
+	sudo mkdir /opt/tomcat
 	sudo useradd -s /bin/false -g tomcat -d /opt/tomcat tomcat
 	cd /tmp
 	curl -O https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.63/bin/apache-tomcat-9.0.63.tar.gz
@@ -17,7 +18,6 @@ if ! sudo grep -q  'Apache Tomcat Web Application Container' /etc/systemd/system
 	#sudo tar xzvf /tmp/apache-tomcat-9.0.*tar.gz -C /opt/tomcat --strip-components=1
 	sudo tar xzvf apache-tomcat-10*.tar.gz -C /opt/tomcat --strip-components=1
 
-	sudo mkdir /opt/tomcat
 	cd /opt/tomcat
 	sudo chgrp -R tomcat /opt/tomcat
 	sudo chmod -R g+r conf
