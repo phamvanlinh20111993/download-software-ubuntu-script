@@ -35,7 +35,7 @@ if ! sudo grep -q  'Apache Tomcat Web Application Container' /etc/systemd/system
 	sudo echo 'Environment="JAVA_HOME=/opt/jdk-13.0.1"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
 	sudo echo 'Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
 	sudo echo 'Environment="CATALINA_Home=/opt/tomcat"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
-	sudo echo 'Environment="CATALINA_BASE=/opt/tomcat' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
+	sudo echo 'Environment="CATALINA_BASE=/opt/tomcat"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
 	sudo echo 'Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
 	#sudo echo 'Environment="JAVA_OPTS.awt.headless=true -Djava.security.egd=file:/dev/v/urandom"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
 	sudo echo 'Environment="JAVA_OPTS=-Djava.security.egd=file:///dev/urandom -Djava.awt.headless=true"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
@@ -120,4 +120,22 @@ else
 
 	sudo apt-get update
 	sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+fi
+
+if type microk8s > /dev/null 2>&1 && which microk8s > /dev/null 2>&1 ;then
+	echo "microk8s is installed, skipping..."
+	microk8s version
+else 
+	echo "################################### installing microk8s #################################################################"
+	sudo snap install microk8s --classic
+	sudo ufw allow in on cni0 && sudo ufw allow out on cni0
+	sudo ufw default allow routed
+
+	sudo usermod -a -G microk8s $USER
+	sudo chown -f -R $USER ~/.kube
+
+	token=$(sudo microk8s kubectl -n kube-system get secret | grep default-token | cut -d " " -f1)
+	sudo microk8s kubectl -n kube-system describe secret $token
+
+	sudo microk8s enable dashboard dns registry storage ingress
 fi

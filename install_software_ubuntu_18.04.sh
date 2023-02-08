@@ -10,7 +10,7 @@
 # 7, nginx 
 # 8, microk8s 
 # 9, tomcat 10.0.11
-# 10, mysql
+# 10, mysql => need to config root password by running cmd: sudo mysql_secure_installation, refer to link under installing mysql commands
 # 11, .....
 #################################################################################################################
 
@@ -197,7 +197,7 @@ if ! sudo grep -q  'Apache Tomcat Web Application Container' /etc/systemd/system
 	sudo echo 'Environment="JAVA_HOME=/opt/jdk-13.0.1"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
 	sudo echo 'Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
 	sudo echo 'Environment="CATALINA_Home=/opt/tomcat"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
-	sudo echo 'Environment="CATALINA_BASE=/opt/tomcat' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
+	sudo echo 'Environment="CATALINA_BASE=/opt/tomcat"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
 	sudo echo 'Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
 	#sudo echo 'Environment="JAVA_OPTS.awt.headless=true -Djava.security.egd=file:/dev/v/urandom"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
 	sudo echo 'Environment="JAVA_OPTS=-Djava.security.egd=file:///dev/urandom -Djava.awt.headless=true"' | sudo tee -a /etc/systemd/system/tomcat.service > /dev/null
@@ -233,19 +233,29 @@ fi
 
 
 ################################################################################################################################## install microk8s
-if [ -x "$(command -v microk8s)" ]; then
+#if [ -x "$(command -v microk8s)" ]; then
+if type microk8s > /dev/null 2>&1 && which microk8s > /dev/null 2>&1 ;then
+	echo "microk8s is installed, skipping..."
+	sudo microk8s version
+	sudo microk8s about
+else 
 	echo "################################### installing microk8s #################################################################"
 	sudo snap install microk8s --classic
-	sudo ufw allow in on cni0 && sudo ufw allow out on cni0
-	sudo ufw default allow routed
-
+	
 	sudo usermod -a -G microk8s $USER
 	sudo chown -f -R $USER ~/.kube
+	
+	sudo ufw allow in on cni0 && sudo ufw allow out on cni0
+	
+	sudo ufw default allow routed
+	
+	sudo microk8s enable dashboard dns registry storage ingress metallb
+	sudo microk8s kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.2/cert-manager.yaml
 
 	token=$(sudo microk8s kubectl -n kube-system get secret | grep default-token | cut -d " " -f1)
 	sudo microk8s kubectl -n kube-system describe secret $token
 
-	sudo microk8s enable dashboard dns registry storage ingress
+	# sudo microk8s enable metallb
 fi
 
 
@@ -296,8 +306,9 @@ mkdir linhpv-ssh-k8s-example
 #echo  IdentityFile ~/linhpv-ssh-k8s-example/id_rsa >> ~/.ssh/config
 #echo  User github.com >> ~/.ssh/config
 #echo  IdentitiesOnly yes >> ~/.ssh/config
-
-cd ~/home/$USER
+#cd /
+#cd ~/home/$USER
+cd ~
 mkdir micro-service-linhpv-vmo
 #git clone git@github.com:phamvanlinh20111993/k8s-example.git
 
@@ -308,4 +319,4 @@ mkdir micro-service-linhpv-vmo
 
 # need to restart system and login again to apply all setting to current system.
 sudo reboot;
-exit;
+#exit;
