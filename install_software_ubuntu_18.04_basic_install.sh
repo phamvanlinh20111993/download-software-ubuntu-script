@@ -18,7 +18,7 @@ sudo apt update
 if ! grep -q  'jdk' /etc/profile; then
   echo "################################### installing java 13 #################################################################"
   sudo wget https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_linux-x64_bin.tar.gz
-  tar -xvf openjdk-13.0.1_linux-x64_bin.tar.gz
+  sudo tar -xvf openjdk-13.0.1_linux-x64_bin.tar.gz
   sudo mv jdk-13.0.1 /opt/
 fi
 
@@ -27,7 +27,7 @@ fi
 if ! grep -q  'maven' /etc/profile; then
   echo "################################### installing maven #################################################################"
   sudo wget https://mirrors.estointernet.in/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
-  tar -xvf apache-maven-3.6.3-bin.tar.gz
+  sudo tar -xvf apache-maven-3.6.3-bin.tar.gz
   sudo mv apache-maven-3.6.3 /opt/
 fi
 
@@ -105,6 +105,12 @@ else
 fi
 sudo docker run hello-world
 
+################################ run docker without sudo ############################################
+# https://phoenixnap.com/kb/docker-permission-denied
+sudo groupadd -f docker
+sudo usermod -aG docker $USER
+newgrp docker
+groups
 
 # https://www.digitalocean.com/community/tutorials/how-to-install-git-on-ubuntu-20-04
 ################################################################################################################################## install git

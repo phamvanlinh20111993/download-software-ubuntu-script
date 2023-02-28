@@ -111,6 +111,13 @@ else
 fi
 sudo docker run hello-world
 
+################################ run docker without sudo ############################################
+# https://phoenixnap.com/kb/docker-permission-denied
+sudo groupadd -f docker
+sudo usermod -aG docker $USER
+newgrp docker
+groups
+
 
 # https://www.digitalocean.com/community/tutorials/how-to-install-git-on-ubuntu-20-04
 ################################################################################################################################## install git
