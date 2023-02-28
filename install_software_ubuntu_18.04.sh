@@ -129,6 +129,8 @@ else
   sudo apt update
   sudo apt install git
 fi
+git config --global user.email "linpv@vmodev.com"
+git config --global user.name "linpv-vmo"
 
 
 ################################################################################################################################## install nodejs
