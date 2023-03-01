@@ -81,7 +81,7 @@ mvn --version
 ################################################################################################################################## install docker
 if type docker > /dev/null 2>&1 && which docker > /dev/null 2>&1 ;then
 	echo "################################# docker was installed ##############################"
-    git --version
+    docker --version
 else 
 	echo "################################### installing docker #################################################################"
 	sudo apt-get remove docker docker-engine docker.io containerd runc
@@ -102,15 +102,15 @@ else
 
 	sudo apt-get update
 	sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+	
+	################################ run docker without sudo ############################################
+	# https://phoenixnap.com/kb/docker-permission-denied
+	sudo groupadd -f docker
+	sudo usermod -aG docker $USER
+	#sudo newgrp docker
+	#groups
 fi
 sudo docker run hello-world
-
-################################ run docker without sudo ############################################
-# https://phoenixnap.com/kb/docker-permission-denied
-sudo groupadd -f docker
-sudo usermod -aG docker $USER
-newgrp docker
-groups
 
 # https://www.digitalocean.com/community/tutorials/how-to-install-git-on-ubuntu-20-04
 ################################################################################################################################## install git
