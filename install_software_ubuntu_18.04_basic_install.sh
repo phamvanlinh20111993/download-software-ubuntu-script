@@ -142,13 +142,14 @@ else
 	sudo ufw allow in on cni0 && sudo ufw allow out on cni0
 	
 	sudo ufw default allow routed
-	
+	sleep 10
 	sudo microk8s enable dashboard dns registry storage ingress metallb
+	sleep 30
 	sudo microk8s kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.2/cert-manager.yaml
 
 	token=$(sudo microk8s kubectl -n kube-system get secret | grep default-token | cut -d " " -f1)
 	sudo microk8s kubectl -n kube-system describe secret $token
-
+	sleep 30
 	# sudo microk8s enable metallb
 fi
 
@@ -185,5 +186,7 @@ mkdir micro-service-linhpv-vmo
 #./microk8s_kubernetes_build_script.sh
 
 # need to restart system and login again to apply all setting to current system.
+echo "################################### sleeling 40, preparing for reboot #################################################################"
+sleep 40
 sudo reboot;
 #exit;
