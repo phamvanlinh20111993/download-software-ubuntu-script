@@ -1,9 +1,6 @@
 #!/bin/bash
 
 sudo apt-get update
-sudo apt-get upgrade
-sudo apt-get install openssh-client
-
 
 ############
 SSH_TYPE=$(dpkg --list | grep ssh)
@@ -12,6 +9,7 @@ if [[ "$SSH_TYPE" == *"openssh-client"* ]]; then
     ssh -V
 else 	
     echo "################################### installing ssh-client #################################################################"
+	sudo apt-get upgrade
 	sudo apt-get install openssh-client
 	sudo systemctl enable ssh --now
 	sudo systemctl start ssh
@@ -24,20 +22,21 @@ unset SSH_TYPE
 
 
 if [ ! -d $HOME/.ssh ]; then
-  echo "$HOME/.ssh does not exist."
+  echo "folder $HOME/.ssh does not exist. Created it"
   mkdir $HOME/.ssh
 fi
 
 if [ ! -e $HOME/.ssh/config ]; then
-	 echo "$HOME/.ssh/config does not exist."
+	 echo "file $HOME/.ssh/config does not exist. Created it"
 	 sudo touch $HOME/.ssh/config
 	 sudo chown -R $USER:$USER $HOME/.ssh/config 
 	 sudo chmod 600 $HOME/.ssh/config
 fi
 
 if [ ! -e $HOME/.ssh/known_hosts ]; then
-	 echo "$HOME/.ssh/known_hosts does not exist."
+	 echo "file $HOME/.ssh/known_hosts does not exist. Created it"
 	 sudo touch $HOME/.ssh/known_hosts
+	 #sudo chgrp -R $USER $HOME/.ssh/known_hosts
 	 sudo chown -v $USER $HOME/.ssh/known_hosts
 fi
 
@@ -50,12 +49,20 @@ PATH_KEY=$FOLDER_STORE_SSH_KEY/$FILE_NAME
 if [ ! -d $FOLDER_STORE_SSH_KEY ]; then
   echo "$FOLDER_STORE_SSH_KEY does not exist."
   mkdir $FOLDER_STORE_SSH_KEY
-  sudo ssh-keygen -f $PATH_KEY  -t ed25519 -b 4096 -N ''
+  sudo ssh-keygen -f $PATH_KEY  -t ed25519 -b 4096 -N '' # -N '' mean not enter passphrase
+  sudo chgrp -R $USER $FOLDER_STORE_SSH_KEY
+  sudo chgrp -R $USER $PATH_KEY
+  sudo chgrp -R "$USER $PATH_KEY.pub"
+  sudo chown -R $USER:$USER $PATH_KEY
+  sudo chown -R $USER:$USER "$PATH_KEY.pub"
+  sudo chmod 600 $PATH_KEY
 fi
 
+########### add public key to remote server (authorized_keys) under $PATH_KEY folder 
+
 if ! sudo grep -q "$REMOTE_HOST_NAME" $HOME/.ssh/config; then 
-	sudo echo "# ####zenkins server###" | sudo tee -a $HOME/.ssh/config > /dev/null
-	sudo echo "# ssh vienlv@$REMOTE_HOST_NAME" | sudo tee -a $HOME/.ssh/config > /dev/null
+	sudo echo "# ####zenkins server config to build host###" | sudo tee -a $HOME/.ssh/config > /dev/null
+	sudo echo "# try to ssh vienlv@$REMOTE_HOST_NAME" | sudo tee -a $HOME/.ssh/config > /dev/null
 	sudo echo "Host $REMOTE_HOST_NAME" | sudo tee -a $HOME/.ssh/config > /dev/null
 	sudo echo "     HostName $REMOTE_HOST_NAME" | sudo tee -a $HOME/.ssh/config > /dev/null
 	sudo echo "     User $REMOTE_USER" | sudo tee -a $HOME/.ssh/config > /dev/null
@@ -66,7 +73,20 @@ if ! sudo grep -q "$REMOTE_HOST_NAME" $HOME/.ssh/config; then
 	sudo echo "     Port 22" | sudo tee -a $HOME/.ssh/config > /dev/null
 	eval $(ssh-agent -s)
 	sudo ssh-keyscan -H $REMOTE_HOST_NAME >> $HOME/.ssh/known_hosts
-
+    
+	#add jenkins user to group
+	groups
+	#sudo usermod -a -G vienlv jenkins
+	#sudo chmod g+rw $HOME/.ssh/
+	#sudo chmod g+rw $HOME/.ssh/authorized_keys
+	#sudo chmod g+r $HOME/.ssh/config
+	#sudo chmod g+rw $HOME/.ssh/known_hosts
+	
+	#sudo chgrp -R $USER $FOLDER_STORE_SSH_KEY
+	#sudo chgrp -R $USER $PATH_KEY
+	#sudo chmod g+rw $FOLDER_STORE_SSH_KEY
+	#sudo chmod g+rw $PATH_KEY
+	
 fi
 
 unset MY_NAME

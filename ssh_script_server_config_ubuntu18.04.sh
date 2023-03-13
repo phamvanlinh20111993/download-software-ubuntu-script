@@ -1,7 +1,6 @@
 #!/bin/bash
 
 sudo apt-get update
-sudo apt-get upgrade
 
 ##########################
 SSH_TYPE=$(dpkg --list | grep ssh)
@@ -10,6 +9,7 @@ if [[ "$SSH_TYPE" == *"openssh-server"* ]]; then
     ssh -V
 else 	
     echo "################################### installing ssh-server #################################################################"
+	sudo apt-get upgrade
 	sudo apt-get install openssh-server
 	# https://www.cyberciti.biz/faq/ubuntu-linux-install-openssh-server/
 	sudo systemctl enable ssh --now
@@ -31,16 +31,16 @@ unset MY_NAME
 if [ -e /root/sudoers.bak ]; then
     echo "file is existed"
 else
-	sudo su
-	cp /etc/sudoers /root/sudoers.bak
+	sudo cp /etc/sudoers /root/sudoers.bak
     
 	userName=`cat storageName.txt`
 	sudo rm storageName.txt
 	# https://www.cyberciti.biz/faq/linux-unix-running-sudo-command-without-a-password/
 	File=/etc/sudoers
-	if ! grep -q "$userName ALL=(ALL)" "$File" ;then
+	if ! sudo grep -q "$userName ALL=(ALL)" "$File" ;then
 	  # sudo echo $MY_NAME ALL = NOPASSWD: /bin/systemctl restart httpd.service, /bin/kill >> /etc/sudoers
 	  # careful with that command
+	  sudo echo "#config allow for $userName user" | sudo tee -a /etc/sudoers > /dev/null
 	  sudo echo "$userName ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers > /dev/null
 	fi
 	unset File
@@ -77,6 +77,6 @@ else
 	chown -R $USER:$USER $HOME/.ssh
 fi
 
-sudo sed -i -E "s|#?PasswordAuthentication no.+|PasswordAuthentication no|g" /etc/ssh/sshd_config
-sudo sed -i -E "s|#?PubkeyAuthentication yes.+|PubkeyAuthentication yes|g" /etc/ssh/sshd_config
+sudo sed -i -E "s|#?PasswordAuthentication.*|PasswordAuthentication no|g" /etc/ssh/sshd_config
+sudo sed -i -E "s|#?PubkeyAuthentication.*|PubkeyAuthentication yes|g" /etc/ssh/sshd_config
 sudo systemctl restart sshd

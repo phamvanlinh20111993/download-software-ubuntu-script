@@ -178,11 +178,27 @@ else
 	 #
 	 sudo systemctl start jenkins
 	 #
-	 sudo systemctl status jenkins
+	 #sudo systemctl status jenkins
+	 
+	 # config jenkins user without promt any password
+	 if [ -e /root/sudoers.bak ]
+	 then
+		echo 'already backup sudoers file'
+	 else
+		sudo cp /etc/sudoers /root/sudoers.bak
+		echo 'create backup sudoers file with name sudoers.bak'
+	 fi
+	 # https://www.cyberciti.biz/faq/linux-unix-running-sudo-command-without-a-password/
+	 File=/etc/sudoers
+	 if ! sudo grep -q "jenkins ALL=(ALL)" "$File" ;then
+	    sudo echo "#config allow for jenkins user" | sudo tee -a /etc/sudoers > /dev/null
+		sudo echo "jenkins ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers > /dev/null
+	 fi
+	 unset File
 fi
 # need to restart system and login again to apply all setting to current system.
 echo "################################### sleeling 40, preparing for reboot #################################################################"
-sleep 40
+sleep 15
 sudo reboot;
 
 
