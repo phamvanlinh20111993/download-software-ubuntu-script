@@ -24,18 +24,28 @@ unset SSH_TYPE
 ############################
 
 MY_NAME=$(whoami)
-sudo touch storageName.txt
-sudo echo "$MY_NAME" | sudo tee -a storageName.txt > /dev/null
+
+if [ "$1" ]; then
+ MY_NAME=$1
+fi
+
+echo "######################### storage my name to file $HOME/storageName.txt"
+sudo touch $HOME/storageName.txt
+sudo echo "$MY_NAME" | sudo tee -a $HOME/storageName.txt > /dev/null
 unset MY_NAME
 
-if [ -e /root/sudoers.bak ]; then
-    echo "file is existed"
+if [ -e $HOME/sudoers.bak ]; then
+    echo "######################### file $HOME/sudoers.bak is existed"
 else
-	sudo cp /etc/sudoers /root/sudoers.bak
+	echo "######################### File $HOME/sudoers.bak does not existed. Create it."
+	sudo touch $HOME/sudoers.bak;
+	
+	sudo cp /etc/sudoers $HOME/sudoers.bak
     
-	userName=`cat storageName.txt`
-	sudo rm storageName.txt
+	userName=`cat $HOME/storageName.txt`
+	sudo rm $HOME/storageName.txt
 	# https://www.cyberciti.biz/faq/linux-unix-running-sudo-command-without-a-password/
+	echo "######################### modify /etc/sudoers, allow $userName can do anything in system. $userName ALL=(ALL) NOPASSWD:ALL"
 	File=/etc/sudoers
 	if ! sudo grep -q "$userName ALL=(ALL)" "$File" ;then
 	  # sudo echo $MY_NAME ALL = NOPASSWD: /bin/systemctl restart httpd.service, /bin/kill >> /etc/sudoers
@@ -45,38 +55,41 @@ else
 	fi
 	unset File
 	unset userName
-	exit;
 fi
 
 
 if [ ! -d $HOME/.ssh ]; then
-  echo "$HOME/.ssh does not exist."
+  echo "$HOME/.ssh does not exist. Create it"
   mkdir $HOME/.ssh
 fi
 
 if [ ! -e $HOME/.ssh/config ]; then
-	 echo "$HOME/.ssh/config does not exist."
+	 echo "######################### $HOME/.ssh/config does not exist. Create it"
 	 sudo touch $HOME/.ssh/config
-	 sudo chown -R $USER:$USER /home/vienlv/.ssh/config 
+	 sudo chown -R $USER:$USER /home/$USER/.ssh/config 
 	 sudo chmod 600 $HOME/.ssh/config
 fi
 
 if [ ! -e $HOME/.ssh/known_hosts ]; then
-	 echo "$HOME/.ssh/known_hosts does not exist."
+	 echo "######################### $HOME/.ssh/known_hosts does not exist. Create it"
 	 sudo touch $HOME/.ssh/known_hosts
 	 sudo chown -v $USER $HOME/.ssh/known_hosts
+	 sudo chmod 600 $HOME/.ssh/known_hosts
 fi
 
 ##############################
 if [ -e $HOME/.ssh/authorized_keys ]; then
-	echo "authorized_keys is existed";
+	echo "######################### authorized_keys is existed. Do nothing";
 else
 	#sudo cat id_rsa.pub>>/home/$USER/.ssh/authorized_keys
-	touch authorized_keys
-	chmod 700 $HOME/.ssh && chmod 600 $HOME/.ssh/authorized_keys
-	chown -R $USER:$USER $HOME/.ssh
+	echo "######################### authorized_keys does not existed. Create it";
+	sudo touch authorized_keys
+	sudo chmod 700 $HOME/.ssh && chmod 600 $HOME/.ssh/authorized_keys
+	sudo chown -R $USER:$USER $HOME/.ssh
 fi
 
+echo "######################### Config /etc/ssh/sshd_config to allow ssh withou password, using public key";
 sudo sed -i -E "s|#?PasswordAuthentication.*|PasswordAuthentication no|g" /etc/ssh/sshd_config
 sudo sed -i -E "s|#?PubkeyAuthentication.*|PubkeyAuthentication yes|g" /etc/ssh/sshd_config
+
 sudo systemctl restart sshd

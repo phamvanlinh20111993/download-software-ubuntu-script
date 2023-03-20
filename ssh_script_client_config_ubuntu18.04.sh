@@ -22,33 +22,43 @@ unset SSH_TYPE
 
 
 if [ ! -d $HOME/.ssh ]; then
-  echo "folder $HOME/.ssh does not exist. Created it"
+  echo "folder $HOME/.ssh does not exist. Created it !!!"
   mkdir $HOME/.ssh
 fi
 
 if [ ! -e $HOME/.ssh/config ]; then
-	 echo "file $HOME/.ssh/config does not exist. Created it"
+	 echo "################################### file $HOME/.ssh/config does not exist. Created it !!!"
 	 sudo touch $HOME/.ssh/config
 	 sudo chown -R $USER:$USER $HOME/.ssh/config 
 	 sudo chmod 600 $HOME/.ssh/config
 fi
 
 if [ ! -e $HOME/.ssh/known_hosts ]; then
-	 echo "file $HOME/.ssh/known_hosts does not exist. Created it"
+	 echo "################################### file $HOME/.ssh/known_hosts does not exist. Created it !!!"
 	 sudo touch $HOME/.ssh/known_hosts
 	 #sudo chgrp -R $USER $HOME/.ssh/known_hosts
 	 sudo chown -v $USER $HOME/.ssh/known_hosts
 fi
 
 REMOTE_HOST_NAME=34.126.75.224
+if [ "$1" ]; then
+  REMOTE_HOST_NAME=$1
+fi
+
 REMOTE_USER=vienlv
+if [ "$2" ]; then
+ REMOTE_USER=$2
+fi
 
 FOLDER_STORE_SSH_KEY="$HOME/.ssh/remote-host-key"
-FILE_NAME="gcp_remote_host_key"
+
+FILE_NAME=$(echo $RANDOM | md5sum | head -c 20)
+
+
 PATH_KEY=$FOLDER_STORE_SSH_KEY/$FILE_NAME
 if [ ! -d $FOLDER_STORE_SSH_KEY ]; then
-  echo "$FOLDER_STORE_SSH_KEY does not exist."
-  mkdir $FOLDER_STORE_SSH_KEY
+  echo "################################### $FOLDER_STORE_SSH_KEY does not exist. Create it !!!"
+  sudo mkdir $FOLDER_STORE_SSH_KEY
   sudo ssh-keygen -f $PATH_KEY  -t ed25519 -b 4096 -N '' # -N '' mean not enter passphrase
   sudo chgrp -R $USER $FOLDER_STORE_SSH_KEY
   sudo chgrp -R $USER $PATH_KEY
@@ -62,7 +72,7 @@ fi
 
 if ! sudo grep -q "$REMOTE_HOST_NAME" $HOME/.ssh/config; then 
 	sudo echo "# ####zenkins server config to build host###" | sudo tee -a $HOME/.ssh/config > /dev/null
-	sudo echo "# try to ssh vienlv@$REMOTE_HOST_NAME" | sudo tee -a $HOME/.ssh/config > /dev/null
+	sudo echo "# try to ssh $REMOTE_USER@$REMOTE_HOST_NAME" | sudo tee -a $HOME/.ssh/config > /dev/null
 	sudo echo "Host $REMOTE_HOST_NAME" | sudo tee -a $HOME/.ssh/config > /dev/null
 	sudo echo "     HostName $REMOTE_HOST_NAME" | sudo tee -a $HOME/.ssh/config > /dev/null
 	sudo echo "     User $REMOTE_USER" | sudo tee -a $HOME/.ssh/config > /dev/null
@@ -74,6 +84,7 @@ if ! sudo grep -q "$REMOTE_HOST_NAME" $HOME/.ssh/config; then
 	eval $(ssh-agent -s)
 	sudo ssh-keyscan -H $REMOTE_HOST_NAME >> $HOME/.ssh/known_hosts
     
+	echo "################################### Random ssh keys was created at path: $PATH_KEY, please remember it."
 	#add jenkins user to group
 	groups
 	#sudo usermod -a -G vienlv jenkins
