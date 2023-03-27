@@ -258,6 +258,7 @@ else
 	
 	sudo ufw default allow routed
 	sleep 10
+	# sudo microk8s enable dashboard dns registry storage ingress metallb rbac
 	sudo microk8s enable dashboard dns registry storage ingress metallb
 	sleep 30
 	sudo microk8s kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.2/cert-manager.yaml

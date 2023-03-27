@@ -42,7 +42,7 @@ else
 	
 	sudo cp /etc/sudoers $HOME/sudoers.bak
     
-	userName=`cat $HOME/storageName.txt`
+	userName=$(cat $HOME/storageName.txt)
 	sudo rm $HOME/storageName.txt
 	# https://www.cyberciti.biz/faq/linux-unix-running-sudo-command-without-a-password/
 	echo "######################### modify /etc/sudoers, allow $userName can do anything in system. $userName ALL=(ALL) NOPASSWD:ALL"

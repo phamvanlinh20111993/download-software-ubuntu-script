@@ -21,23 +21,23 @@ fi
 unset SSH_TYPE
 
 
-if [ ! -d $HOME/.ssh ]; then
+if [ ! -d "$HOME"/.ssh ]; then
   echo "folder $HOME/.ssh does not exist. Created it !!!"
-  mkdir $HOME/.ssh
+  mkdir "$HOME"/.ssh
 fi
 
-if [ ! -e $HOME/.ssh/config ]; then
+if [ ! -e "$HOME"/.ssh/config ]; then
 	 echo "################################### file $HOME/.ssh/config does not exist. Created it !!!"
-	 sudo touch $HOME/.ssh/config
-	 sudo chown -R $USER:$USER $HOME/.ssh/config 
-	 sudo chmod 600 $HOME/.ssh/config
+	 sudo touch "$HOME"/.ssh/config
+	 sudo chown -R "$USER:$USER" "$HOME"/.ssh/config
+	 sudo chmod 600 "$HOME"/.ssh/config
 fi
 
-if [ ! -e $HOME/.ssh/known_hosts ]; then
+if [ ! -e "$HOME"/.ssh/known_hosts ]; then
 	 echo "################################### file $HOME/.ssh/known_hosts does not exist. Created it !!!"
-	 sudo touch $HOME/.ssh/known_hosts
+	 sudo touch "$HOME"/.ssh/known_hosts
 	 #sudo chgrp -R $USER $HOME/.ssh/known_hosts
-	 sudo chown -v $USER $HOME/.ssh/known_hosts
+	 sudo chown -v "$USER" "$HOME"/.ssh/known_hosts
 fi
 
 REMOTE_HOST_NAME=34.126.75.224
@@ -55,17 +55,17 @@ FOLDER_STORE_SSH_KEY="$HOME/.ssh/remote-host-key"
 FILE_NAME=$(echo $RANDOM | md5sum | head -c 20)
 
 
-PATH_KEY=$FOLDER_STORE_SSH_KEY/$FILE_NAME
-if [ ! -d $FOLDER_STORE_SSH_KEY ]; then
+PATH_KEY="$FOLDER_STORE_SSH_KEY/$FILE_NAME"
+if [ ! -d "$FOLDER_STORE_SSH_KEY" ]; then
   echo "################################### $FOLDER_STORE_SSH_KEY does not exist. Create it !!!"
-  sudo mkdir $FOLDER_STORE_SSH_KEY
-  sudo ssh-keygen -f $PATH_KEY  -t ed25519 -b 4096 -N '' # -N '' mean not enter passphrase
-  sudo chgrp -R $USER $FOLDER_STORE_SSH_KEY
-  sudo chgrp -R $USER $PATH_KEY
-  sudo chgrp -R "$USER $PATH_KEY.pub"
-  sudo chown -R $USER:$USER $PATH_KEY
-  sudo chown -R $USER:$USER "$PATH_KEY.pub"
-  sudo chmod 600 $PATH_KEY
+  sudo mkdir "$FOLDER_STORE_SSH_KEY"
+  sudo ssh-keygen -f "$PATH_KEY"  -t ed25519 -b 4096 -N '' # -N '' mean not enter passphrase
+  sudo chgrp -R "$USER" "$FOLDER_STORE_SSH_KEY"
+  sudo chgrp -R "$USER" "$PATH_KEY"
+  sudo chgrp -R "$USER" "$PATH_KEY.pub"
+  sudo chown -R "$USER:$USER" "$PATH_KEY"
+  sudo chown -R "$USER:$USER" "$PATH_KEY.pub"
+  sudo chmod 600 "$PATH_KEY"
 fi
 
 ########### add public key to remote server (authorized_keys) under $PATH_KEY folder 
