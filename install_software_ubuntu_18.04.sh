@@ -175,7 +175,7 @@ fi
 #      https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-10-on-ubuntu-20-04
 #      https://phoenixnap.com/kb/install-tomcat-ubuntu
 # check file is in system: https://stackoverflow.com/questions/5905054/how-can-i-recursively-find-all-files-in-current-and-subfolders-based-on-wildcard
-if ! sudo grep -q  'Apache Tomcat Web Application Container' /etc/systemd/system/tomcat.service; then
+if ! sudo grep -q 'Apache Tomcat Web Application Container' /etc/systemd/system/tomcat.service; then
 	echo "####################################################################### install apache tomcat ##############################"
 	sudo apt update
 	sudo groupadd tomcat
@@ -249,7 +249,9 @@ if type microk8s > /dev/null 2>&1 && which microk8s > /dev/null 2>&1 ;then
 	sudo microk8s about
 else 
 	echo "################################### installing microk8s #################################################################"
-	sudo snap install microk8s --classic
+	# https://stackoverflow.com/questions/7642674/how-do-i-script-a-yes-response-for-installing-programs
+	#sudo snap install microk8s --classic
+	yes | sudo snap install microk8s --classic
 	
 	sudo usermod -a -G microk8s $USER
 	sudo chown -f -R $USER ~/.kube
@@ -258,7 +260,16 @@ else
 	
 	sudo ufw default allow routed
 	sleep 10
-	sudo microk8s enable dashboard dns registry storage ingress metallb
+	sudo microk8s enable dashboard dns registry storage ingress
+	sleep 30
+	ipRange="10.1.1.9-10.250.250.250"
+	echo "$ipRange" | sudo microk8s enable metallb
+	unset ipRange;
+	
+	if [ -f ~/.bash_aliases ] && ! sudo grep -q "microk8s kubectl" ~/.bash_aliases; then 
+		echo "alias kubectl='microk8s kubectl'" | sudo tee -a ~/.bash_aliases
+	fi
+	
 	sleep 30
 	sudo microk8s kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.2/cert-manager.yaml
 

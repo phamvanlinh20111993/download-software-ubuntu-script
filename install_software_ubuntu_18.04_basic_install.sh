@@ -134,7 +134,9 @@ if type microk8s > /dev/null 2>&1 && which microk8s > /dev/null 2>&1 ;then
 	sudo microk8s about
 else 
 	echo "################################### installing microk8s #################################################################"
-	sudo snap install microk8s --classic
+	# https://stackoverflow.com/questions/7642674/how-do-i-script-a-yes-response-for-installing-programs
+	yes | sudo snap install microk8s --classic
+	#sudo snap install microk8s --classic
 	
 	sudo usermod -a -G microk8s $USER
 	sudo chown -f -R $USER ~/.kube
@@ -143,14 +145,25 @@ else
 	
 	sudo ufw default allow routed
 	sleep 10
-	sudo microk8s enable dashboard dns registry storage ingress metallb
+	# https://stackoverflow.com/questions/7642674/how-do-i-script-a-yes-response-for-installing-programs
+	#sudo microk8s enable dashboard dns registry storage ingress metallb
+	yes | sudo microk8s enable dashboard dns registry storage ingress
+	# sudo microk8s enable metallb
 	sleep 30
+	ipRange="10.1.1.9-10.250.250.250"
+	echo "$ipRange" | sudo microk8s enable metallb
+	unset ipRange;
+	sleep 30
+	
+	#https://microk8s.io/docs/getting-started
+	if [ -f ~/.bash_aliases ] && ! sudo grep -q "microk8s kubectl" ~/.bash_aliases; then 
+		echo "alias kubectl='microk8s kubectl'" | sudo tee -a ~/.bash_aliases
+	fi
+	
 	sudo microk8s kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.2/cert-manager.yaml
-
 	token=$(sudo microk8s kubectl -n kube-system get secret | grep default-token | cut -d " " -f1)
 	sudo microk8s kubectl -n kube-system describe secret $token
 	sleep 30
-	# sudo microk8s enable metallb
 fi
 
 #####################################################################################################################################################################
