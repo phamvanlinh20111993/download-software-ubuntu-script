@@ -12,6 +12,13 @@
 
 sudo apt update
 
+LOG_INSTALL_FILENAME=install_software_ubuntu_log.log
+
+if [ -f $LOG_INSTALL_FILENAME ]; then
+  sudo rm $LOG_INSTALL_FILENAME
+fi
+
+
 ################################################################################################################################## install java 13
 # url https://www.digitalocean.com/community/tutorials/install-maven-linux-ubuntu
 # check in terminal: grep -q "jdk" /etc/profile; [ $? -eq 0 ] && echo "yes" || echo "no"
@@ -84,7 +91,7 @@ if type docker > /dev/null 2>&1 && which docker > /dev/null 2>&1 ;then
     docker --version
 else 
 	echo "################################### installing docker #################################################################"
-	sudo apt-get remove docker docker-engine docker.io containerd runc
+	yes | sudo apt-get remove docker docker-engine docker.io containerd runc 2>&1 | tee -a $LOG_INSTALL_FILENAME
 
 	sudo apt-get update
 	sudo apt-get install \
@@ -101,7 +108,7 @@ else
 	  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 	sudo apt-get update
-	sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+	yes | sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin 2>&1 | tee -a $LOG_INSTALL_FILENAME
 	
 	################################ run docker without sudo ############################################
 	# https://phoenixnap.com/kb/docker-permission-denied
@@ -134,7 +141,13 @@ if type microk8s > /dev/null 2>&1 && which microk8s > /dev/null 2>&1 ;then
 	sudo microk8s about
 else 
 	echo "################################### installing microk8s #################################################################"
-	sudo snap install microk8s --classic
+	# https://stackoverflow.com/questions/7642674/how-do-i-script-a-yes-response-for-installing-programs
+	# When you run the command yes | sudo snap install microk8s --classic, it will not show any output in the terminal by default. 
+	yes | sudo snap install microk8s --classic
+	# this command below will show the output in the install.log
+	# yes | sudo snap install microk8s --classic 2>&1 | tee -a install.log
+	
+	#sudo snap install microk8s --classic
 	
 	sudo usermod -a -G microk8s $USER
 	sudo chown -f -R $USER ~/.kube
@@ -143,14 +156,26 @@ else
 	
 	sudo ufw default allow routed
 	sleep 10
-	sudo microk8s enable dashboard dns registry storage ingress metallb
+	# https://stackoverflow.com/questions/7642674/how-do-i-script-a-yes-response-for-installing-programs
+	#sudo microk8s enable dashboard dns registry storage ingress metallb
+	yes | sudo microk8s enable dashboard dns registry storage ingress 2>&1 | tee -a $LOG_INSTALL_FILENAME
+	# sudo microk8s enable metallb
 	sleep 30
+	ipRange="10.1.1.5-10.250.250.250"
+	echo "$ipRange" | sudo microk8s enable metallb 2>&1 | tee -a $LOG_INSTALL_FILENAME
+	unset ipRange;
+	sleep 30
+	
+	#https://microk8s.io/docs/getting-started
+	if [ -f ~/.bash_aliases ] && ! sudo grep -q "microk8s kubectl" ~/.bash_aliases; then 
+		echo "################## Add alias 'alias kubectl='microk8s kubectl'' to ~/.bash_aliases file"
+		echo "alias kubectl='microk8s kubectl'" | sudo tee -a ~/.bash_aliases
+	fi
+	
 	sudo microk8s kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.2/cert-manager.yaml
-
 	token=$(sudo microk8s kubectl -n kube-system get secret | grep default-token | cut -d " " -f1)
 	sudo microk8s kubectl -n kube-system describe secret $token
 	sleep 30
-	# sudo microk8s enable metallb
 fi
 
 #####################################################################################################################################################################
@@ -185,6 +210,7 @@ mkdir micro-service-linhpv-vmo
 #chmod +x ./microk8s_kubernetes_build_script.sh
 #./microk8s_kubernetes_build_script.sh
 
+unset LOG_INSTALL_FILENAME;
 # need to restart system and login again to apply all setting to current system.
 echo "################################### sleeling 40, preparing for reboot #################################################################"
 sleep 40
