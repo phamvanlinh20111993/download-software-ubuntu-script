@@ -2,7 +2,7 @@
 
 ##################################### install softwares in ubuntu 18.04 #########################################
 # 1, java jdk 13.02
-# 2, maven 3.6.3
+# 2, maven 3.9.9
 # 3, docker 
 # 4, git 
 # 5, microk8s 
@@ -26,9 +26,9 @@ fi
 #grep -q "maven" /etc/profile; [ $? -eq 0 ] && echo "yes" || echo "no"
 if ! grep -q  'maven' /etc/profile; then
   echo "################################### installing maven #################################################################"
-  sudo wget https://mirrors.estointernet.in/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
-  sudo tar -xvf apache-maven-3.6.3-bin.tar.gz
-  sudo mv apache-maven-3.6.3 /opt/
+  sudo wget https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
+  sudo tar -xvf apache-maven-3.9.9-bin.tar.gz
+  sudo mv apache-maven-3.9.9 /opt/
 fi
 
 ################################################################################################################################## setting enviroment for java and maven
@@ -39,40 +39,57 @@ fi
 #sudo echo "export M2_HOME=/opt/apache-maven-3.6.3" >>~/.bashrc
 #sudo echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" >>~/.bashrc
 
-if ! (grep -q  'jdk' /etc/profile || grep -q  'maven' /etc/profile ); then
+if ! (grep -q  'jdk' /etc/environment && grep -q  'maven' /etc/environment ); then
 	echo "################################### setting java and maven path in enviroment file #################################################################"
 	# https://stackoverflow.com/questions/13702425/source-command-not-found-in-sh-shell
-	sudo echo 'export JAVA_HOME=/opt/jdk-13.0.1' | sudo tee -a /etc/enviroment > /dev/null
-	source /etc/environment
-	echo $JAVA_HOME
-	sudo echo 'export M2_HOME=/opt/apache-maven-3.6.3' | sudo tee -a /etc/enviroment > /dev/null
-	source /etc/environment
-	echo $M2_HOME
-	sudo echo 'export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH' | sudo tee -a /etc/enviroment > /dev/null
-	source /etc/environment
+	
+	if ! grep -q  'jdk' /etc/environment; then
+		sudo echo 'export JAVA_HOME=/opt/jdk-13.0.1' | sudo tee -a /etc/enviroment > /dev/null
+		echo $JAVA_HOME
+		
+		sudo echo 'export PATH=$JAVA_HOME/bin:$PATH' | sudo tee -a /etc/enviroment > /dev/null
+		source /etc/environment
+	fi
+	
+	if ! grep -q  'maven' /etc/environment; then
+		sudo echo 'export M2_HOME=/opt/apache-maven-3.9.9' | sudo tee -a /etc/enviroment > /dev/null
+		echo $M2_HOME
+		
+		sudo echo 'export PATH=$M2_HOME/bin:$PATH' | sudo tee -a /etc/enviroment > /dev/null
+		source /etc/environment
+	fi
+	
 	sudo -s source /etc/environment
 fi
 
 
-if ! (grep -q  'jdk' /etc/profile || grep -q  'maven' /etc/profile ); then
+if ! (grep -q  'jdk' /etc/profile && grep -q  'maven' /etc/profile ); then
 	# if enviroment file is not work: https://askubuntu.com/questions/747745/maven-environment-variable-not-working-on-other-terminal
 	echo "################################### setting java and maven path in profile file #################################################################"
 	# https://stackoverflow.com/questions/13702425/source-command-not-found-in-sh-shell
-	sudo echo 'export JAVA_HOME=/opt/jdk-13.0.1' | sudo tee -a /etc/profile > /dev/null
-	echo $JAVA_HOME
-	source /etc/profile
+	
+	if ! grep -q  'jdk' /etc/profile; then
+		sudo echo 'export JAVA_HOME=/opt/jdk-13.0.1' | sudo tee -a /etc/profile > /dev/null
+		echo $JAVA_HOME
+		
+		sudo echo "export PATH=$JAVA_HOME/bin:$PATH" | sudo tee -a /etc/profile > /dev/null
+		source /etc/profile
+	fi	
+	
+	if ! grep -q  'maven' /etc/profile; then
+		sudo echo "export M2_HOME=/opt/apache-maven-3.9.9" | sudo tee -a /etc/profile > /dev/null
+		echo $M2_HOME
+		
+		sudo echo "export PATH=$M2_HOME/bin:$PATH" | sudo tee -a /etc/profile > /dev/null
+		source /etc/profile
+	fi
 
-	sudo echo "export M2_HOME=/opt/apache-maven-3.6.3" | sudo tee -a /etc/profile > /dev/null
-	echo $M2_HOME
-	source /etc/profile
-
-	sudo echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" | sudo tee -a /etc/profile > /dev/null
-	source /etc/profile 
 	sudo -s source /etc/profile
 fi
 
 echo '######################## java version #################################################'
 java -version
+
 echo '######################## mvn version #################################################'
 mvn --version
 
