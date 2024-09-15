@@ -2,7 +2,7 @@
 
 ##################################### install softwares in ubuntu 18.04 #########################################
 # 1, java jdk 13.02
-# 2, maven 3.6.3
+# 2, maven 3.9.9
 # 3, docker 
 # 4, git 
 # 5, node 16.19.0
@@ -11,7 +11,8 @@
 # 8, microk8s 
 # 9, tomcat 10.0.11
 # 10, mysql => need to config root password by running cmd: sudo mysql_secure_installation, refer to link under installing mysql commands
-# 11, .....
+# 11, vim
+# 12, .....
 #################################################################################################################
 
 
@@ -21,7 +22,7 @@ sudo apt update
 ################################################################################################################################## install java 13
 # url https://www.digitalocean.com/community/tutorials/install-maven-linux-ubuntu
 # check in terminal: grep -q "jdk" /etc/profile; [ $? -eq 0 ] && echo "yes" || echo "no"
-if ! grep -q  'jdk' /etc/profile; then
+if ! grep -q 'jdk' /etc/profile; then
   echo "################################### installing java 13 #################################################################"
   sudo wget https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_linux-x64_bin.tar.gz
   tar -xvf openjdk-13.0.1_linux-x64_bin.tar.gz
@@ -30,14 +31,14 @@ fi
 
 ################################################################################################################################## install maven
 #grep -q "maven" /etc/profile; [ $? -eq 0 ] && echo "yes" || echo "no"
-if ! grep -q  'maven' /etc/profile; then
+if ! grep -q 'maven' /etc/profile; then
   echo "################################### installing maven #################################################################"
-  sudo wget https://mirrors.estointernet.in/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
-  tar -xvf apache-maven-3.6.3-bin.tar.gz
-  sudo mv apache-maven-3.6.3 /opt/
+  sudo wget https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
+  sudo tar -xvf apache-maven-3.9.9-bin.tar.gz
+  sudo mv apache-maven-3.9.9 /opt/
 fi
 
-################################################################################################################################## setting enviroment for java and maven
+################################################################################################################################## setting environment for java and maven
 #url https://stackoverflow.com/questions/33860560/how-to-set-java-environment-variables-using-shell-script
 # https://stackoverflow.com/questions/6207573/how-to-append-output-to-the-end-of-a-text-file
 # https://askubuntu.com/questions/175514/how-to-set-java-home-for-java
@@ -45,40 +46,57 @@ fi
 #sudo echo "export M2_HOME=/opt/apache-maven-3.6.3" >>~/.bashrc
 #sudo echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" >>~/.bashrc
 
-if ! (grep -q  'jdk' /etc/profile || grep -q  'maven' /etc/profile ); then
-	echo "################################### setting java and maven path in enviroment file #################################################################"
+if ! ( grep -q 'jdk' /etc/environment && grep -q 'maven' /etc/environment ); then
+	echo "################################### setting java and maven path in environment file #################################################################"
 	# https://stackoverflow.com/questions/13702425/source-command-not-found-in-sh-shell
-	sudo echo 'export JAVA_HOME=/opt/jdk-13.0.1' | sudo tee -a /etc/enviroment > /dev/null
-	source /etc/environment
-	echo $JAVA_HOME
-	sudo echo 'export M2_HOME=/opt/apache-maven-3.6.3' | sudo tee -a /etc/enviroment > /dev/null
-	source /etc/environment
-	echo $M2_HOME
-	sudo echo 'export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH' | sudo tee -a /etc/enviroment > /dev/null
-	source /etc/environment
+	
+	if ! grep -q 'jdk' /etc/environment; then
+		sudo echo 'export JAVA_HOME=/opt/jdk-13.0.1' | sudo tee -a /etc/environment > /dev/null
+		echo $JAVA_HOME
+		
+		sudo echo 'export PATH=$JAVA_HOME/bin:$PATH' | sudo tee -a /etc/environment > /dev/null
+		source /etc/environment
+	fi
+	
+	if ! grep -q 'maven' /etc/environment; then
+		sudo echo 'export M2_HOME=/opt/apache-maven-3.9.9' | sudo tee -a /etc/environment > /dev/null
+		echo $M2_HOME
+		
+		sudo echo 'export PATH=$M2_HOME/bin:$PATH' | sudo tee -a /etc/environment > /dev/null
+		source /etc/environment
+	fi
+	
 	sudo -s source /etc/environment
 fi
 
 
-if ! (grep -q  'jdk' /etc/profile || grep -q  'maven' /etc/profile ); then
-	# if enviroment file is not work: https://askubuntu.com/questions/747745/maven-environment-variable-not-working-on-other-terminal
+if ! ( grep -q 'jdk' /etc/profile && grep -q 'maven' /etc/profile ); then
+	# if environment file is not work: https://askubuntu.com/questions/747745/maven-environment-variable-not-working-on-other-terminal
 	echo "################################### setting java and maven path in profile file #################################################################"
 	# https://stackoverflow.com/questions/13702425/source-command-not-found-in-sh-shell
-	sudo echo 'export JAVA_HOME=/opt/jdk-13.0.1' | sudo tee -a /etc/profile > /dev/null
-	echo $JAVA_HOME
-	source /etc/profile
+	
+	if ! grep -q 'jdk' /etc/profile; then
+		sudo echo 'export JAVA_HOME=/opt/jdk-13.0.1' | sudo tee -a /etc/profile > /dev/null
+		echo $JAVA_HOME
+		
+		sudo echo "export PATH=$JAVA_HOME/bin:$PATH" | sudo tee -a /etc/profile > /dev/null
+		source /etc/profile
+	fi	
+	
+	if ! grep -q 'maven' /etc/profile; then
+		sudo echo "export M2_HOME=/opt/apache-maven-3.9.9" | sudo tee -a /etc/profile > /dev/null
+		echo $M2_HOME
+		
+		sudo echo "export PATH=$M2_HOME/bin:$PATH" | sudo tee -a /etc/profile > /dev/null
+		source /etc/profile
+	fi
 
-	sudo echo "export M2_HOME=/opt/apache-maven-3.6.3" | sudo tee -a /etc/profile > /dev/null
-	echo $M2_HOME
-	source /etc/profile
-
-	sudo echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" | sudo tee -a /etc/profile > /dev/null
-	source /etc/profile 
 	sudo -s source /etc/profile
 fi
 
 echo '######################## java version #################################################'
 java -version
+
 echo '######################## mvn version #################################################'
 mvn --version
 
@@ -129,8 +147,8 @@ else
   sudo apt update
   sudo apt install git
 fi
-git config --global user.email "linpv@vmodev.com"
-git config --global user.name "linpv-vmo"
+git config --global user.email "phamvanlinh20111993@gmail.com"
+git config --global user.name "phamvanlinh20111993"
 
 
 ################################################################################################################################## install nodejs
@@ -162,12 +180,14 @@ if ! which nginx > /dev/null 2>&1; then
     echo "################################### Nginx not installed ###################################"
 	sudo apt update
 	sudo apt install nginx
-	service nginx status
+	# service nginx status & 
+	timeout 5 service nginx status 
 else
 	echo "################################### Nginx is installed, skipping... ###################################"
-	service nginx status
+	# service nginx status &
+	timeout 5 service nginx status 
 fi
-
+echo "Finnish with nginx"
 
 ################################################################################################################################## install apache tomcat
 
@@ -339,6 +359,16 @@ mkdir micro-service-linhpv-vmo
 #./microk8s_kubernetes_build_script.sh
 
 # need to restart system and login again to apply all setting to current system.
+
+# install vim
+if command -v vim &>/dev/null; then
+    echo "#################################  Vim have already installed. #################################  "
+else
+    echo "#################################  Vim is not installed. Installing Vim...################################# "
+    sudo apt update
+    sudo apt install vim
+fi
+
 echo "################################### sleeling 40, preparing for reboot #################################################################"
 sleep 40
 sudo reboot;
