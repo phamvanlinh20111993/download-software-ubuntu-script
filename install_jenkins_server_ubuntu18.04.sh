@@ -14,23 +14,25 @@ sudo apt update
 ################################################################################################################################## install java 13
 # url https://www.digitalocean.com/community/tutorials/install-maven-linux-ubuntu
 # check in terminal: grep -q "jdk" /etc/profile; [ $? -eq 0 ] && echo "yes" || echo "no"
-if ! grep -q  'jdk' /etc/profile; then
+if ! grep -q 'jdk' /etc/profile; then
   echo "################################### installing java 13 #################################################################"
   sudo wget https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65ae61e4305/9/GPL/openjdk-13.0.1_linux-x64_bin.tar.gz
   sudo tar -xvf openjdk-13.0.1_linux-x64_bin.tar.gz
   sudo mv jdk-13.0.1 /opt/
+  rm openjdk-13.0.1_linux-x64_bin.tar.gz
 fi
 
 ################################################################################################################################## install maven
 #grep -q "maven" /etc/profile; [ $? -eq 0 ] && echo "yes" || echo "no"
-if ! grep -q  'maven' /etc/profile; then
+if ! grep -q 'maven' /etc/profile; then
   echo "################################### installing maven #################################################################"
   sudo wget https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
   sudo tar -xvf apache-maven-3.9.9-bin.tar.gz
   sudo mv apache-maven-3.9.9 /opt/
+  rm apache-maven-3.9.9-bin.tar.gz
 fi
 
-################################################################################################################################## setting enviroment for java and maven
+################################################################################################################################## setting environment for java and maven
 #url https://stackoverflow.com/questions/33860560/how-to-set-java-environment-variables-using-shell-script
 # https://stackoverflow.com/questions/6207573/how-to-append-output-to-the-end-of-a-text-file
 # https://askubuntu.com/questions/175514/how-to-set-java-home-for-java
@@ -38,23 +40,23 @@ fi
 #sudo echo "export M2_HOME=/opt/apache-maven-3.9.9" >>~/.bashrc
 #sudo echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" >>~/.bashrc
 
-if ! (grep -q  'jdk' /etc/environment && grep -q  'maven' /etc/environment ); then
-	echo "################################### setting java and maven path in enviroment file #################################################################"
+if ! ( grep -q 'jdk' /etc/environment && grep -q 'maven' /etc/environment ); then
+	echo "################################### setting java and maven path in environment file #################################################################"
 	# https://stackoverflow.com/questions/13702425/source-command-not-found-in-sh-shell
 	
-	if ! grep -q  'jdk' /etc/environment; then
-		sudo echo 'export JAVA_HOME=/opt/jdk-13.0.1' | sudo tee -a /etc/enviroment > /dev/null
+	if ! grep -q 'jdk' /etc/environment; then
+		sudo echo 'export JAVA_HOME=/opt/jdk-13.0.1' | sudo tee -a /etc/environment > /dev/null
 		echo $JAVA_HOME
 		
-		sudo echo 'export PATH=$JAVA_HOME/bin:$PATH' | sudo tee -a /etc/enviroment > /dev/null
+		sudo echo 'export PATH=$JAVA_HOME/bin:$PATH' | sudo tee -a /etc/environment > /dev/null
 		source /etc/environment
 	fi
 	
-	if ! grep -q  'maven' /etc/environment; then
-		sudo echo 'export M2_HOME=/opt/apache-maven-3.9.9' | sudo tee -a /etc/enviroment > /dev/null
+	if ! grep -q 'maven' /etc/environment; then
+		sudo echo 'export M2_HOME=/opt/apache-maven-3.9.9' | sudo tee -a /etc/environment > /dev/null
 		echo $M2_HOME
 		
-		sudo echo 'export PATH=$M2_HOME/bin:$PATH' | sudo tee -a /etc/enviroment > /dev/null
+		sudo echo 'export PATH=$M2_HOME/bin:$PATH' | sudo tee -a /etc/environment > /dev/null
 		source /etc/environment
 	fi
 	
@@ -62,8 +64,8 @@ if ! (grep -q  'jdk' /etc/environment && grep -q  'maven' /etc/environment ); th
 fi
 
 
-if ! (grep -q  'jdk' /etc/profile && grep -q  'maven' /etc/profile ); then
-	# if enviroment file is not work: https://askubuntu.com/questions/747745/maven-environment-variable-not-working-on-other-terminal
+if ! ( grep -q 'jdk' /etc/profile && grep -q 'maven' /etc/profile ); then
+	# if environment file is not work: https://askubuntu.com/questions/747745/maven-environment-variable-not-working-on-other-terminal
 	echo "################################### setting java and maven path in profile file #################################################################"
 	# https://stackoverflow.com/questions/13702425/source-command-not-found-in-sh-shell
 	
@@ -148,8 +150,28 @@ git config --global user.name "phamvanlinh20111993"
 # 
 # or http://ftp.us.debian.org/debian/pool/main/i/init-system-helpers/init-system-helpers_1.60_all.deb
 # or http://ftp.de.debian.org/debian/pool/main/i/init-system-helpers/init-system-helpers_1.60_all.deb
-wget http://ftp.kr.debian.org/debian/pool/main/i/init-system-helpers/init-system-helpers_1.60_all.deb
-sudo dpkg -i init-system-helpers_1.60_all.deb
+
+# Check if init-system-helpers is installed
+
+required_version="1.60"
+if dpkg -l | grep -q init-system-helpers; then
+    echo "init-system-helpers is installed."
+	installed_version=$(dpkg -l | grep init-system-helpers | awk '{print $3}')
+    echo "Version: $installed_version"
+	# Compare versions
+    if dpkg --compare-versions "$installed_version" lt "$required_version"; then
+        echo "Version is less than $required_version. Installing the latest version..."
+		wget http://ftp.kr.debian.org/debian/pool/main/i/init-system-helpers/init-system-helpers_1.60_all.deb
+		sudo dpkg -i init-system-helpers_1.60_all.deb
+    else
+        echo "Version is up to date."
+    fi
+else
+    echo "init-system-helpers is not installed."
+	wget http://ftp.kr.debian.org/debian/pool/main/i/init-system-helpers/init-system-helpers_1.60_all.deb
+	sudo dpkg -i init-system-helpers_1.60_all.deb
+fi
+
 
 ################################################################################################################################## install jenkins
 # https://www.jenkins.io/doc/book/installing/linux/#debianubuntu
