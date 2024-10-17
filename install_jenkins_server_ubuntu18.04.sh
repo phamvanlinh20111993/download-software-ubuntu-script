@@ -178,9 +178,16 @@ fi
 # https://www.jenkins.io/doc/book/system-administration/systemd-services/
 # https://www.digitalocean.com/community/tutorials/how-to-install-jenkins-on-ubuntu-18-04
 
-if test -d /lib/systemd/system/ && test -e /lib/systemd/system/jenkins.service && grep -q 'jenkins' /lib/systemd/system/jenkins.service ;then
+if command -v jenkins > /dev/null 2>&1; then
+#if test -d /lib/systemd/system/ && test -e /lib/systemd/system/jenkins.service && grep -q 'jenkins' /lib/systemd/system/jenkins.service ;then
 	echo "################################# jenkins was installed ##############################"
-	sudo systemctl status jenkins
+	# sudo systemctl status jenkins | less
+	# Check if Jenkins service is active
+	if sudo systemctl is-active --quiet jenkins; then
+		echo "Jenkins is running."
+	else
+		echo "Jenkins is not running."
+	fi
 else
 	echo "################################### installing jenkins #################################################################"
 	# this is command for jenkins old version before 04/2023
