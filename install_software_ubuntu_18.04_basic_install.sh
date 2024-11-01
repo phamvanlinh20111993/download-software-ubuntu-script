@@ -165,7 +165,7 @@ else
 	sleep 10
 	# https://stackoverflow.com/questions/7642674/how-do-i-script-a-yes-response-for-installing-programs
 	#sudo microk8s enable dashboard dns registry storage ingress metallb
-	yes | sudo microk8s enable dashboard dns registry storage ingress
+	yes Y | sudo microk8s enable dashboard dns registry storage ingress
 	# sudo microk8s enable metallb
 	sleep 30
 	ipRange="10.1.1.9-10.250.250.250"

@@ -62,7 +62,7 @@ if [ ! -d $FOLDER_STORE_SSH_KEY ]; then
   sudo ssh-keygen -f $PATH_KEY  -t ed25519 -b 4096 -N '' # -N '' mean not enter passphrase
   sudo chgrp -R $USER $FOLDER_STORE_SSH_KEY
   sudo chgrp -R $USER $PATH_KEY
-  sudo chgrp -R "$USER $PATH_KEY.pub"
+  sudo chgrp -R $USER "$PATH_KEY.pub"
   sudo chown -R $USER:$USER $PATH_KEY
   sudo chown -R $USER:$USER "$PATH_KEY.pub"
   sudo chmod 600 $PATH_KEY
